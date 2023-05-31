@@ -17,6 +17,9 @@ predict_model <- function(split, workflow, grid, metrics, submodels = NULL,
   }
 
   orig_rows <- as.integer(split, data = "assessment")
+  if (length(orig_rows) != nrow(x_vals)) {
+      orig_rows <- 1:NROW(x_vals)
+  }
 
   if (length(orig_rows) != nrow(x_vals)) {
     msg <- paste0(
