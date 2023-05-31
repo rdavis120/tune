@@ -47,6 +47,7 @@ predict_model <- function(split, workflow, grid, metrics, submodels = NULL,
   types <- unique(metrics_info$type)
 
   res <- NULL
+  y_vals <- forged$outcomes
   merge_vars <- c(".row", names(grid))
 
   for (type_iter in types) {
@@ -94,6 +95,14 @@ predict_model <- function(split, workflow, grid, metrics, submodels = NULL,
   y_vals$.row <- orig_rows
   res <- dplyr::full_join(res, y_vals, by = ".row")
 
+  group_vals <- forged$extras$roles$group
+  group_vals$.row <- orig_rows 
+  res <- dplyr::full_join(res, group_vals, by = ".row")
+ 
+  timestamp_vals <- forged$extras$roles$timestamp
+  timestamp_vals$.row <- orig_rows
+  res <- dplyr::full_join(res, timestamp_vals, by = ".row")
+ 
   # Add case weights (if needed)
   if (has_case_weights(workflow)) {
     case_weights <- extract_case_weights(new_data, workflow)
