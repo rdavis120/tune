@@ -1,7 +1,5 @@
-
 predict_model <- function(split, workflow, grid, metrics, submodels = NULL,
                           metrics_info, eval_time = NULL) {
-
   model <- extract_fit_parsnip(workflow)
 
   new_data <- rsample::assessment(split)
@@ -20,7 +18,6 @@ predict_model <- function(split, workflow, grid, metrics, submodels = NULL,
   if (length(orig_rows) != nrow(x_vals)) {
       orig_rows <- 1:NROW(x_vals)
   }
-
   if (length(orig_rows) != nrow(x_vals)) {
     msg <- paste0(
       "Some assessment set rows are not available at ",
@@ -57,7 +54,6 @@ predict_model <- function(split, workflow, grid, metrics, submodels = NULL,
     tmp_res$.row <- orig_rows
     tmp_res <- vctrs::vec_cbind(tmp_res, grid)
 
-
     if (!is.null(submodels)) {
       submod_length <- lengths(submodels)
       has_submodels <- any(submod_length > 0)
@@ -90,19 +86,24 @@ predict_model <- function(split, workflow, grid, metrics, submodels = NULL,
 
     rm(tmp_res)
   } # end type loop
-
   # Add outcome data
-  y_vals$.row <- orig_rows
-  res <- dplyr::full_join(res, y_vals, by = ".row")
+  if (!is.null(y_vals)) {
+    y_vals$.row <- orig_rows
+    res <- dplyr::full_join(res, y_vals, by = ".row")
+  }
 
   group_vals <- forged$extras$roles$group
-  group_vals$.row <- orig_rows 
-  res <- dplyr::full_join(res, group_vals, by = ".row")
- 
+  if (!is.null(group_vals)) {
+    group_vals$.row <- orig_rows
+    res <- dplyr::full_join(res, group_vals, by = ".row")
+  }
+  #
   timestamp_vals <- forged$extras$roles$timestamp
-  timestamp_vals$.row <- orig_rows
-  res <- dplyr::full_join(res, timestamp_vals, by = ".row")
- 
+  if (!is.null(timestamp_vals)) {
+    timestamp_vals$.row <- orig_rows
+    res <- dplyr::full_join(res, timestamp_vals, by = ".row")
+  }
+
   # Add case weights (if needed)
   if (has_case_weights(workflow)) {
     case_weights <- extract_case_weights(new_data, workflow)
@@ -167,7 +168,8 @@ predict_wrapper <- function(model, new_data, type, eval_time, subgrid = NULL) {
       .ns = "parsnip",
       object = rlang::expr(model),
       new_data = rlang::expr(new_data),
-      type = type)
+      type = type
+    )
 
   # Add in censored regression evaluation times (if needed)
   has_type <- type %in% c("survival", "hazard")
