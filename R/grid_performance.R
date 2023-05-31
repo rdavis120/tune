@@ -76,10 +76,10 @@ metrics_info <- function(x) {
   types <- unique(metrics_info$type)
 
   if (length(outcome_name) > 1L) {
-    rlang::abort(paste0(
-      "Internal error: Multiple outcomes are not ",
-      "supported in `.estimate_metrics()`."
-    ))
+    dat <- do.call(rbind, lapply(outcome_name, FUN = function(j) {
+      return(data.frame(.pred = dat[, paste0(".pred_", j), drop = T], .outcome = dat[, j, drop = T], dat[, intersect(colnames(dat), c(".row", ".case_weights")), drop = F]))
+    }))
+    outcome_name <- ".outcome"
   }
 
   if (case_weights_column_name() %in% names(dat)) {
